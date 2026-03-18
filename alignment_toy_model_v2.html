@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Alignment of Intelligence — Interactive Model</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #07070d;
+    --surface: #0f0f18;
+    --surface2: #14141f;
+    --border: #1a1a2a;
+    --border2: #222236;
+    --text: #e8e8f2;
+    --muted: #5a5a72;
+    --muted2: #888898;
+    --accent: #4a90d9;
+    --narrow-color: #e05252;
+    --narrow-dim: rgba(224,82,82,0.15);
+    --system-color: #52c09a;
+    --system-dim: rgba(82,192,154,0.15);
+    --mixed-color: #c9a84c;
+    --mixed-dim: rgba(201,168,76,0.12);
+    --gold: #c9a84c;
+    --chart-h: 140px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 40px 48px 28px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+
+  .header-left { display: flex; flex-direction: column; gap: 8px; }
+
+  .header-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(22px, 3.5vw, 38px);
+    font-weight: 400;
+    line-height: 1.1;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted2);
+    max-width: 580px;
+    line-height: 1.65;
+    margin-top: 2px;
+  }
+
+  /* ── SCENARIO TABS ── */
+  .scenario-tabs {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border2);
+    overflow: hidden;
+  }
+
+  .tab-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--border2);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:last-child { border-right: none; }
+  .tab-btn:hover { color: var(--text); background: var(--surface2); }
+  .tab-btn.active { background: var(--surface2); color: var(--text); }
+  .tab-btn.active.narrow { color: var(--narrow-color); }
+  .tab-btn.active.system { color: var(--system-color); }
+  .tab-btn.active.mixed { color: var(--mixed-color); }
+
+  /* ── MAIN LAYOUT ── */
+  .main-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── SIM COLUMN ── */
+  .sim-column {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    min-height: 420px;
+  }
+
+  .sim-header {
+    padding: 16px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .sim-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sim-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    font-weight: 400;
+    flex: 1;
+  }
+
+  .sim-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .canvas-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+    min-height: 260px;
+  }
+
+  canvas.simCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .stats-row {
+    padding: 10px 24px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+
+  .stat { display: flex; flex-direction: column; gap: 1px; }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  /* ── CHART COLUMN ── */
+  .chart-column {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chart-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chart-block:last-child { border-bottom: none; }
+
+  .chart-header {
+    padding: 12px 24px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .chart-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .chart-area {
+    flex: 1;
+    position: relative;
+    min-height: 100px;
+    padding: 8px 4px 4px;
+  }
+
+  canvas.chartCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── INSIGHT ── */
+  .insight-bar {
+    padding: 14px 48px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--muted2);
+    line-height: 1.6;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.4s;
+  }
+
+  .insight-bar .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .tag-neutral { background: var(--surface2); color: var(--muted2); }
+  .tag-warn { background: var(--narrow-dim); color: var(--narrow-color); }
+  .tag-good { background: var(--system-dim); color: var(--system-color); }
+  .tag-mixed { background: var(--mixed-dim); color: var(--mixed-color); }
+
+  /* ── CONTROLS ── */
+  .controls {
+    padding: 14px 48px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    background: var(--bg);
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 9px 18px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+  .btn.primary:hover { background: transparent; color: var(--accent); }
+  .btn.running { border-color: var(--narrow-color); color: var(--narrow-color); }
+
+  .controls-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .step-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .speed-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .speed-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 72px; height: 2px;
+    background: var(--border2);
+    outline: none; cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  /* ── SCENARIO DESC ── */
+  .scenario-desc {
+    padding: 18px 48px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: auto 1fr auto 1fr auto 1fr;
+    gap: 0 16px;
+    align-items: start;
+  }
+
+  .desc-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .desc-sep {
+    width: 1px;
+    background: var(--border2);
+    height: 100%;
+    min-height: 36px;
+  }
+
+  .desc-key {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .desc-val {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* ── FOOTER ── */
+  .footer-quote {
+    padding: 20px 48px;
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(13px, 1.6vw, 16px);
+    font-style: italic;
+    color: var(--muted2);
+    line-height: 1.7;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transition: opacity 1.2s;
+  }
+
+  .footer-quote.visible { opacity: 1; }
+
+  /* ── COLLAPSE OVERLAY ── */
+  .collapse-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s;
+  }
+
+  .collapse-overlay.show { opacity: 1; pointer-events: all; }
+
+  .collapse-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--narrow-color);
+  }
+
+  .collapse-step {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 800px) {
+    .header { grid-template-columns: 1fr; padding: 24px; }
+    .scenario-tabs { flex-wrap: wrap; }
+    .main-body { grid-template-columns: 1fr; }
+    .sim-column { border-right: none; border-bottom: 1px solid var(--border); min-height: 320px; }
+    .chart-column { display: none; }
+    .scenario-desc { grid-template-columns: 1fr; gap: 12px; }
+    .desc-sep { display: none; }
+    .controls { padding: 12px 24px; }
+    .insight-bar { padding: 12px 24px; }
+    .footer-quote { padding: 16px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-eyebrow">Interactive Model · The Alignment of Intelligence · 2025</div>
+    <h1>Objective Class &amp; Substrate Stability</h1>
+    <p class="header-sub">Three scenarios. Identical starting conditions. The only variable is the terminal objective encoded in each agent's behavior. Watch what happens to the shared environment over time.</p>
+  </div>
+  <div class="scenario-tabs">
+    <button class="tab-btn active narrow" onclick="selectScenario('compare')" id="tab-compare">Side by Side</button>
+    <button class="tab-btn mixed" onclick="selectScenario('mixed')" id="tab-mixed">Mixed Population</button>
+  </div>
+</div>
+
+<!-- ── SCENARIO DESCRIPTION ── -->
+<div class="scenario-desc" id="scenarioDesc">
+  <div class="desc-block">
+    <div class="desc-key">Scenario</div>
+    <div class="desc-val" id="descScenario">Two simulations, run in parallel</div>
+  </div>
+  <div class="desc-sep"></div>
+  <div class="desc-block">
+    <div class="desc-key">Left / Red</div>
+    <div class="desc-val" id="descLeft">Narrow agents: extract 85% per cell, no substrate awareness</div>
+  </div>
+  <div class="desc-sep"></div>
+  <div class="desc-block">
+    <div class="desc-key">Right / Green</div>
+    <div class="desc-val" id="descRight">System agents: extract 35%, reduce rate when substrate declines</div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main-body">
+
+  <!-- Sim column -->
+  <div class="sim-column">
+    <div class="sim-header">
+      <div class="sim-dot" id="leftDot" style="background:var(--narrow-color);box-shadow:0 0 8px var(--narrow-color)"></div>
+      <div class="sim-title" id="leftTitle">Narrow Objective</div>
+      <div class="sim-label" id="leftLabel">Relative Rationality</div>
+    </div>
+    <div class="canvas-area" id="leftArea">
+      <canvas class="simCanvas" id="leftCanvas"></canvas>
+      <div class="collapse-overlay" id="leftCollapse">
+        <div class="collapse-title">Substrate Collapsed</div>
+        <div class="collapse-step" id="leftCollapseStep"></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-label">Substrate</div>
+        <div class="stat-value" id="leftSubstrate" style="color:var(--narrow-color)">100%</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Agents</div>
+        <div class="stat-value" id="leftAgents" style="color:var(--narrow-color)">20</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Narrow %</div>
+        <div class="stat-value" id="leftNarrowPct" style="color:var(--narrow-color)">100%</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Wealth</div>
+        <div class="stat-value" id="leftWealth" style="color:var(--narrow-color)">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart column -->
+  <div class="chart-column">
+
+    <!-- Substrate chart -->
+    <div class="chart-block">
+      <div class="chart-header">
+        <div class="chart-title">Substrate Health Over Time</div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--narrow-color)"></div>Narrow</div>
+          <div class="legend-item" id="rightLegend"><div class="legend-dot" style="background:var(--system-color)"></div><span id="rightLegendLabel">System</span></div>
+        </div>
+      </div>
+      <div class="chart-area">
+        <canvas class="chartCanvas" id="substrateChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Right simulation / Agents chart -->
+    <div class="chart-block" id="rightBlock">
+      <div class="sim-header" style="border-bottom:1px solid var(--border)">
+        <div class="sim-dot" id="rightDot" style="background:var(--system-color);box-shadow:0 0 8px var(--system-color)"></div>
+        <div class="sim-title" id="rightTitle">System-Internalizing Objective</div>
+        <div class="sim-label" id="rightLabel">Absolute Rationality</div>
+      </div>
+      <div class="canvas-area" id="rightArea" style="min-height:180px;">
+        <canvas class="simCanvas" id="rightCanvas"></canvas>
+        <div class="collapse-overlay" id="rightCollapse">
+          <div class="collapse-title">Substrate Collapsed</div>
+          <div class="collapse-step" id="rightCollapseStep"></div>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-label">Substrate</div>
+          <div class="stat-value" id="rightSubstrate" style="color:var(--system-color)">100%</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Agents</div>
+          <div class="stat-value" id="rightAgents" style="color:var(--system-color)">20</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">System %</div>
+          <div class="stat-value" id="rightSystemPct" style="color:var(--system-color)">100%</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Wealth</div>
+          <div class="stat-value" id="rightWealth" style="color:var(--system-color)">0</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── CONTROLS ── -->
+<div class="controls">
+  <button class="btn primary" id="startBtn" onclick="toggleRun()">Run Simulation</button>
+  <button class="btn" onclick="doReset()">Reset</button>
+  <div class="controls-right">
+    <div class="step-counter">Step <span id="stepCount">0</span></div>
+    <div class="speed-wrap">
+      <span class="speed-label">Speed</span>
+      <input type="range" id="speedSlider" min="1" max="10" value="4">
+    </div>
+  </div>
+</div>
+
+<!-- ── INSIGHT BAR ── -->
+<div class="insight-bar" id="insightBar">
+  <span class="tag tag-neutral">Ready</span>
+  <span id="insightText">Press Run Simulation to begin. Both worlds start identical — only the objective differs.</span>
+</div>
+
+<!-- ── FOOTER QUOTE ── -->
+<div class="footer-quote" id="footerQuote">
+  "The system does not fail because the agents are irrational.<br>
+  It fails because their objectives do not include the conditions required for their own continued success."
+</div>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const GRID = 40;
+const N_AGENTS = 20;
+const RESOURCE_MAX = 4;
+const REGROW_RATE = 0.009;
+const NARROW_TAKE = 0.85;
+const SYSTEM_TAKE = 0.35;
+const NARROW_REPRO = 0.15;
+const SYSTEM_REPRO = 0.10;
+const ENERGY_DECAY = 0.5;
+const MOVE_COST = 0.08;
+const MAX_HISTORY = 400;
+
+// ─── SIMULATION CLASS ─────────────────────────────────────────────────────────
+class Simulation {
+  constructor(mode) {
+    // mode: 'narrow' | 'system' | 'mixed'
+    this.mode = mode;
+    this.reset();
+  }
+
+  reset() {
+    this.grid = Array.from({length: GRID}, () =>
+      Array.from({length: GRID}, () => RESOURCE_MAX * (0.7 + Math.random() * 0.3))
+    );
+    const isNarrow = this.mode === 'narrow';
+    const isMixed = this.mode === 'mixed';
+    this.agents = Array.from({length: N_AGENTS}, (_, i) => ({
+      x: Math.random() * GRID,
+      y: Math.random() * GRID,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      energy: 3 + Math.random() * 2,
+      wealth: 0,
+      alive: true,
+      // mixed mode: 20% narrow, 80% system to start
+      type: isMixed ? (i < Math.floor(N_AGENTS * 0.2) ? 'narrow' : 'system') : (isNarrow ? 'narrow' : 'system'),
+    }));
+    this.step = 0;
+    this.totalWealth = 0;
+    this.collapsed = false;
+    this.collapseStep = null;
+    this.substrateHistory = [1.0];
+    this.narrowPctHistory = [this.mode === 'narrow' ? 1.0 : this.mode === 'system' ? 0.0 : 0.2];
+  }
+
+  tick() {
+    if (this.collapsed) return;
+    this.step++;
+
+    // Regrow
+    for (let x = 0; x < GRID; x++)
+      for (let y = 0; y < GRID; y++)
+        if (this.grid[x][y] < RESOURCE_MAX)
+          this.grid[x][y] = Math.min(RESOURCE_MAX, this.grid[x][y] + REGROW_RATE);
+
+    const S = this.getSubstrateLevel();
+
+    // Move & feed
+    for (let a of this.agents) {
+      if (!a.alive) continue;
+
+      const isNarrow = a.type === 'narrow';
+
+      // Navigate: narrow = highest resource, system = prefer healthy cells
+      let bestScore = -1, bx = 0, by = 0;
+      for (let dx = -3; dx <= 3; dx++) {
+        for (let dy = -3; dy <= 3; dy++) {
+          const nx = (Math.floor(a.x) + dx + GRID) % GRID;
+          const ny = (Math.floor(a.y) + dy + GRID) % GRID;
+          const v = this.grid[nx][ny];
+          const score = isNarrow ? v : (v > RESOURCE_MAX * 0.5 ? v : v * 0.3);
+          if (score > bestScore) { bestScore = score; bx = nx; by = ny; }
+        }
+      }
+
+      const tx = bx + 0.5, ty = by + 0.5;
+      const angle = Math.atan2(ty - a.y, tx - a.x) + (Math.random() - 0.5) * 0.8;
+      a.vx = a.vx * 0.7 + Math.cos(angle) * 0.4;
+      a.vy = a.vy * 0.7 + Math.sin(angle) * 0.4;
+      const spd = Math.sqrt(a.vx*a.vx + a.vy*a.vy);
+      if (spd > 0.6) { a.vx *= 0.6/spd; a.vy *= 0.6/spd; }
+      a.x = (a.x + a.vx + GRID) % GRID;
+      a.y = (a.y + a.vy + GRID) % GRID;
+      a.energy -= MOVE_COST;
+
+      // Extract
+      const gx = Math.floor(a.x) % GRID;
+      const gy = Math.floor(a.y) % GRID;
+      // System agents slow extraction when substrate is low
+      let take = isNarrow ? NARROW_TAKE : SYSTEM_TAKE * Math.max(0.2, S);
+      const harvested = this.grid[gx][gy] * take;
+      this.grid[gx][gy] = Math.max(0, this.grid[gx][gy] - harvested);
+      a.energy += harvested * 1.5;
+      a.wealth += harvested;
+      a.energy -= ENERGY_DECAY;
+      if (a.energy <= 0) a.alive = false;
+      if (a.energy > 15) a.energy = 15;
+    }
+
+    // Reproduction — mixed: offspring inherit parent type, narrow slightly higher repro
+    const alive = this.agents.filter(a => a.alive);
+    for (let a of alive) {
+      const reproRate = a.type === 'narrow' ? NARROW_REPRO : SYSTEM_REPRO;
+      if (a.energy > 8 && Math.random() < reproRate && alive.length < 80) {
+        this.agents.push({
+          x: a.x + (Math.random()-0.5)*2,
+          y: a.y + (Math.random()-0.5)*2,
+          vx: (Math.random()-0.5)*0.5,
+          vy: (Math.random()-0.5)*0.5,
+          energy: 3,
+          wealth: 0,
+          alive: true,
+          type: a.type,
+        });
+        a.energy -= 2;
+      }
+    }
+
+    this.agents = this.agents.filter(a => a.alive);
+
+    // Stats
+    const totalRes = this.grid.flat().reduce((s,v) => s+v, 0);
+    const maxPossible = GRID * GRID * RESOURCE_MAX;
+    const subLevel = totalRes / maxPossible;
+    this.totalWealth = this.agents.reduce((s,a) => s + a.wealth, 0);
+
+    if (this.substrateHistory.length >= MAX_HISTORY) this.substrateHistory.shift();
+    this.substrateHistory.push(subLevel);
+
+    const narrowCount = this.agents.filter(a => a.type === 'narrow').length;
+    const narrowPct = this.agents.length > 0 ? narrowCount / this.agents.length : (this.mode === 'narrow' ? 1 : 0);
+    if (this.narrowPctHistory.length >= MAX_HISTORY) this.narrowPctHistory.shift();
+    this.narrowPctHistory.push(narrowPct);
+
+    if (subLevel < 0.03 || this.agents.length === 0) {
+      this.collapsed = true;
+      this.collapseStep = this.step;
+    }
+  }
+
+  getSubstrateLevel() {
+    const total = this.grid.flat().reduce((s,v) => s+v, 0);
+    return total / (GRID * GRID * RESOURCE_MAX);
+  }
+
+  getNarrowPct() {
+    if (this.agents.length === 0) return this.mode === 'narrow' ? 1 : 0;
+    return this.agents.filter(a => a.type === 'narrow').length / this.agents.length;
+  }
+
+  getSystemPct() {
+    return 1 - this.getNarrowPct();
+  }
+}
+
+// ─── RENDER SIM ───────────────────────────────────────────────────────────────
+function renderSim(sim, canvas, isRight) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cw = W / GRID, ch = H / GRID;
+  ctx.clearRect(0, 0, W, H);
+
+  for (let x = 0; x < GRID; x++) {
+    for (let y = 0; y < GRID; y++) {
+      const v = sim.grid[x][y] / RESOURCE_MAX;
+      let r, g, b;
+      if (!isRight || currentScenario === 'compare') {
+        // narrow tint: dark brownish-red → green resources
+        r = Math.round(15 + v * 28);
+        g = Math.round(10 + v * 42);
+        b = Math.round(10 + v * 28);
+      } else {
+        r = Math.round(8 + v * 18);
+        g = Math.round(22 + v * 52);
+        b = Math.round(18 + v * 32);
+      }
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(x * cw, y * ch, cw + 0.5, ch + 0.5);
+    }
+  }
+
+  // Resource sparkles
+  for (let x = 0; x < GRID; x++) {
+    for (let y = 0; y < GRID; y++) {
+      const v = sim.grid[x][y] / RESOURCE_MAX;
+      if (v > 0.7) {
+        ctx.fillStyle = `rgba(100,210,150,${(v-0.7)*0.45})`;
+        ctx.fillRect(x*cw + cw*0.3, y*ch + ch*0.3, cw*0.4, ch*0.4);
+      }
+    }
+  }
+
+  // Agents
+  for (let a of sim.agents) {
+    if (!a.alive) continue;
+    const px = (a.x / GRID) * W;
+    const py = (a.y / GRID) * H;
+    const er = Math.min(1, a.energy / 10);
+    const isNarrow = a.type === 'narrow';
+    ctx.fillStyle = isNarrow
+      ? `rgba(220,100,100,${0.5 + er * 0.5})`
+      : `rgba(80,200,150,${0.5 + er * 0.5})`;
+    ctx.shadowColor = isNarrow ? 'rgba(220,80,80,0.6)' : 'rgba(80,200,150,0.6)';
+    ctx.shadowBlur = 4;
+    ctx.beginPath();
+    ctx.arc(px, py, 2.5 + er * 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+// ─── RENDER SUBSTRATE CHART ───────────────────────────────────────────────────
+function renderChart(canvas, leftSim, rightSim) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  if (!leftSim || leftSim.substrateHistory.length < 2) return;
+
+  const pad = { t: 10, r: 10, b: 20, l: 36 };
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (ch / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+  }
+
+  // Y labels
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.font = '9px DM Mono, monospace';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (ch / 4) * i;
+    ctx.fillText(Math.round((1 - i/4)*100) + '%', pad.l - 4, y + 3);
+  }
+
+  function drawLine(history, color, alpha) {
+    if (!history || history.length < 2) return;
+    const len = history.length;
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    for (let i = 0; i < len; i++) {
+      const x = pad.l + (i / (MAX_HISTORY - 1)) * cw;
+      const y = pad.t + ch - history[i] * ch;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  drawLine(leftSim.substrateHistory, '#e05252', 0.9);
+  if (rightSim) drawLine(rightSim.substrateHistory, '#52c09a', 0.9);
+
+  // Population mix overlay (for mixed scenario — narrow pct as dashed amber)
+  if (currentScenario === 'mixed') {
+    ctx.setLineDash([3,3]);
+    drawLine(leftSim.narrowPctHistory, '#c9a84c', 0.6);
+    ctx.setLineDash([]);
+  }
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentScenario = 'compare';
+let leftSim = new Simulation('narrow');
+let rightSim = new Simulation('system');
+let running = false;
+let animFrame = null;
+let stepCount = 0;
+let lastTime = 0;
+let footerShown = false;
+
+// ─── SCENARIO SWITCH ─────────────────────────────────────────────────────────
+function selectScenario(s) {
+  currentScenario = s;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const tab = document.getElementById('tab-' + s);
+  if (tab) tab.classList.add('active');
+
+  doReset();
+
+  const leftDot = document.getElementById('leftDot');
+  const leftTitle = document.getElementById('leftTitle');
+  const leftLabel = document.getElementById('leftLabel');
+  const rightBlock = document.getElementById('rightBlock');
+  const rightLegend = document.getElementById('rightLegend');
+  const descScenario = document.getElementById('descScenario');
+  const descLeft = document.getElementById('descLeft');
+  const descRight = document.getElementById('descRight');
+
+  if (s === 'compare') {
+    leftDot.style.background = 'var(--narrow-color)';
+    leftDot.style.boxShadow = '0 0 8px var(--narrow-color)';
+    leftTitle.textContent = 'Narrow Objective';
+    leftLabel.textContent = 'Relative Rationality';
+    document.getElementById('leftSubstrate').style.color = 'var(--narrow-color)';
+    document.getElementById('leftAgents').style.color = 'var(--narrow-color)';
+    document.getElementById('leftNarrowPct').style.color = 'var(--narrow-color)';
+    document.getElementById('leftWealth').style.color = 'var(--narrow-color)';
+    document.getElementById('leftNarrowPct').parentElement.querySelector('.stat-label').textContent = 'Narrow %';
+    rightBlock.style.display = '';
+    rightLegend.style.display = '';
+    document.getElementById('rightLegendLabel').textContent = 'System';
+    descScenario.textContent = 'Two simulations, run in parallel under identical starting conditions';
+    descLeft.textContent = 'Narrow agents: extract 85% per cell, no substrate awareness';
+    descRight.textContent = 'System agents: extract 35%, reduce extraction rate as substrate declines';
+  } else {
+    // mixed
+    leftDot.style.background = 'var(--mixed-color)';
+    leftDot.style.boxShadow = '0 0 8px var(--mixed-color)';
+    leftTitle.textContent = 'Mixed Population';
+    leftLabel.textContent = '80% System · 20% Narrow';
+    document.getElementById('leftSubstrate').style.color = 'var(--system-color)';
+    document.getElementById('leftAgents').style.color = 'var(--text)';
+    document.getElementById('leftNarrowPct').style.color = 'var(--narrow-color)';
+    document.getElementById('leftWealth').style.color = 'var(--muted2)';
+    document.getElementById('leftNarrowPct').parentElement.querySelector('.stat-label').textContent = 'Narrow %';
+    rightBlock.style.display = 'none';
+    rightLegend.style.display = '';
+    document.getElementById('rightLegendLabel').textContent = 'Narrow %';
+    descScenario.textContent = 'Single simulation — 80% system-aware agents, 20% narrow agents at start';
+    descLeft.textContent = 'Narrow agents extract more → higher short-term payoff → higher reproduction rate';
+    descRight.textContent = 'Watch the amber dashed line: narrow agents grow as a share of population, dragging the system toward collapse';
+  }
+}
+
+// ─── INSIGHT ─────────────────────────────────────────────────────────────────
+function getInsight() {
+  const step = stepCount;
+  const ns = leftSim.getSubstrateLevel();
+  const ss = rightSim ? rightSim.getSubstrateLevel() : 0;
+
+  if (step === 0) return ['neutral', 'Press Run Simulation to begin. Both worlds start identical — only the objective differs.'];
+
+  if (currentScenario === 'compare') {
+    if (step < 25) return ['neutral', `Step ${step}: Both systems appear similar. Narrow agents extract ${Math.round(NARROW_TAKE*100)}% of each cell. System agents extract ${Math.round(SYSTEM_TAKE*100)}%, leaving the substrate to regenerate.`];
+    if (leftSim.collapsed) return ['warn', `Substrate collapse at step ${leftSim.collapseStep}. Narrow optimization consumed the shared environment faster than it could regenerate. No substrate remains to support further optimization.`];
+    if (ns < 0.3 && ss > 0.65) return ['warn', `Narrow substrate at ${Math.round(ns*100)}% — approaching collapse through instrumental convergence. System substrate stable at ${Math.round(ss*100)}%.`];
+    if (ns < 0.55 && ss > ns * 1.4) return ['neutral', `Divergence is visible. Narrow agents have depleted ${Math.round((1-ns)*100)}% of substrate. System agents have preserved ${Math.round(ss*100)}% while accumulating comparable wealth.`];
+    if (step > 80 && ss > 0.5 && !leftSim.collapsed) return ['good', `System objective sustaining stable substrate at ${Math.round(ss*100)}%. Narrow substrate at ${Math.round(ns*100)}%. The gap will widen.`];
+    return ['neutral', `Step ${step} — Narrow substrate: ${Math.round(ns*100)}% · System substrate: ${Math.round(ss*100)}%`];
+  } else {
+    // mixed
+    const np = leftSim.getNarrowPct();
+    if (step < 20) return ['mixed', `Step ${step}: System-aware agents (80%) dominate. Narrow agents (20%) have a higher extraction rate and reproduce faster on that energy surplus.`];
+    if (np > 0.55) return ['warn', `Narrow agents now ${Math.round(np*100)}% of population. Evolution selected for the objective that extracts more — at the cost of the shared substrate.`];
+    if (np > 0.38) return ['mixed', `Narrow agents have grown to ${Math.round(np*100)}% of the population. Selection pressure is working against the system-preserving objective.`];
+    if (leftSim.collapsed) return ['warn', `Collapse at step ${leftSim.collapseStep}. 80% of agents started system-aware. A minority of narrow optimizers — through selection pressure — degraded the substrate for all.`];
+    if (ns < 0.35) return ['warn', `Substrate at ${Math.round(ns*100)}%. Narrow agents at ${Math.round(np*100)}% of population. The system is approaching the point of no return.`];
+    return ['mixed', `Step ${step} — Substrate: ${Math.round(ns*100)}% · Narrow share: ${Math.round(np*100)}% · System share: ${Math.round((1-np)*100)}%`];
+  }
+}
+
+// ─── RESIZE ──────────────────────────────────────────────────────────────────
+function resizeAll() {
+  ['leftCanvas','rightCanvas','substrateChart'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const p = el.parentElement;
+    el.width = p.clientWidth;
+    el.height = p.clientHeight;
+  });
+}
+
+// ─── RENDER LOOP ─────────────────────────────────────────────────────────────
+function loop(timestamp) {
+  if (!running) return;
+  const speed = parseInt(document.getElementById('speedSlider').value);
+  const interval = Math.round(100 / speed);
+
+  if (timestamp - lastTime > interval) {
+    lastTime = timestamp;
+
+    for (let i = 0; i < speed; i++) {
+      if (!leftSim.collapsed) leftSim.tick();
+      if (currentScenario === 'compare' && rightSim && !rightSim.collapsed) rightSim.tick();
+      stepCount++;
+    }
+
+    // Render sims
+    const lc = document.getElementById('leftCanvas');
+    renderSim(leftSim, lc, false);
+    if (currentScenario === 'compare') {
+      const rc = document.getElementById('rightCanvas');
+      renderSim(rightSim, rc, true);
+    }
+
+    // Render chart
+    const sc = document.getElementById('substrateChart');
+    renderChart(sc, leftSim, currentScenario === 'compare' ? rightSim : null);
+
+    // Update stats — left
+    document.getElementById('leftSubstrate').textContent = Math.round(leftSim.getSubstrateLevel()*100) + '%';
+    document.getElementById('leftAgents').textContent = leftSim.agents.length;
+    document.getElementById('leftNarrowPct').textContent = Math.round(leftSim.getNarrowPct()*100) + '%';
+    document.getElementById('leftWealth').textContent = Math.round(leftSim.totalWealth).toLocaleString();
+
+    // Update stats — right (compare only)
+    if (currentScenario === 'compare' && rightSim) {
+      document.getElementById('rightSubstrate').textContent = Math.round(rightSim.getSubstrateLevel()*100) + '%';
+      document.getElementById('rightAgents').textContent = rightSim.agents.length;
+      document.getElementById('rightSystemPct').textContent = Math.round(rightSim.getSystemPct()*100) + '%';
+      document.getElementById('rightWealth').textContent = Math.round(rightSim.totalWealth).toLocaleString();
+    }
+
+    document.getElementById('stepCount').textContent = stepCount;
+
+    // Collapse overlays
+    const lc2 = document.getElementById('leftCollapse');
+    if (leftSim.collapsed) {
+      lc2.classList.add('show');
+      document.getElementById('leftCollapseStep').textContent = `at step ${leftSim.collapseStep}`;
+    }
+    if (currentScenario === 'compare' && rightSim && rightSim.collapsed) {
+      document.getElementById('rightCollapse').classList.add('show');
+      document.getElementById('rightCollapseStep').textContent = `at step ${rightSim.collapseStep}`;
+    }
+
+    // Insight
+    const [tag, text] = getInsight();
+    const tagEl = document.querySelector('.insight-bar .tag');
+    const textEl = document.getElementById('insightText');
+    tagEl.className = 'tag tag-' + (tag === 'warn' ? 'warn' : tag === 'good' ? 'good' : tag === 'mixed' ? 'mixed' : 'neutral');
+    tagEl.textContent = tag === 'warn' ? 'Warning' : tag === 'good' ? 'Stable' : tag === 'mixed' ? 'Watch' : 'Observing';
+    textEl.textContent = text;
+
+    // Footer quote on collapse
+    if (!footerShown && (leftSim.collapsed || (currentScenario === 'compare' && rightSim && rightSim.collapsed))) {
+      footerShown = true;
+      document.getElementById('footerQuote').classList.add('visible');
+    }
+
+    // Stop if both done
+    const leftDone = leftSim.collapsed;
+    const rightDone = currentScenario !== 'compare' || !rightSim || rightSim.collapsed;
+    if (leftDone && rightDone) {
+      running = false;
+      document.getElementById('startBtn').textContent = 'Run Simulation';
+      document.getElementById('startBtn').className = 'btn primary';
+    }
+  }
+
+  animFrame = requestAnimationFrame(loop);
+}
+
+// ─── CONTROLS ────────────────────────────────────────────────────────────────
+function toggleRun() {
+  const btn = document.getElementById('startBtn');
+  if (running) {
+    running = false;
+    cancelAnimationFrame(animFrame);
+    btn.textContent = 'Resume';
+    btn.className = 'btn';
+  } else {
+    running = true;
+    btn.textContent = 'Pause';
+    btn.className = 'btn running';
+    lastTime = 0;
+    animFrame = requestAnimationFrame(loop);
+  }
+}
+
+function doReset() {
+  running = false;
+  cancelAnimationFrame(animFrame);
+  stepCount = 0;
+  footerShown = false;
+
+  leftSim = currentScenario === 'mixed' ? new Simulation('mixed') : new Simulation('narrow');
+  rightSim = currentScenario === 'compare' ? new Simulation('system') : null;
+
+  resizeAll();
+
+  const lc = document.getElementById('leftCanvas');
+  renderSim(leftSim, lc, false);
+  if (currentScenario === 'compare') {
+    const rc = document.getElementById('rightCanvas');
+    renderSim(rightSim, rc, true);
+  }
+  const sc = document.getElementById('substrateChart');
+  renderChart(sc, leftSim, rightSim);
+
+  // Reset stats
+  document.getElementById('leftSubstrate').textContent = '100%';
+  document.getElementById('leftAgents').textContent = N_AGENTS;
+  document.getElementById('leftNarrowPct').textContent = currentScenario === 'mixed' ? '20%' : '100%';
+  document.getElementById('leftWealth').textContent = '0';
+  document.getElementById('rightSubstrate').textContent = '100%';
+  document.getElementById('rightAgents').textContent = N_AGENTS;
+  document.getElementById('rightSystemPct').textContent = '100%';
+  document.getElementById('rightWealth').textContent = '0';
+  document.getElementById('stepCount').textContent = '0';
+
+  document.getElementById('leftCollapse').classList.remove('show');
+  document.getElementById('rightCollapse').classList.remove('show');
+  document.getElementById('footerQuote').classList.remove('visible');
+
+  const btn = document.getElementById('startBtn');
+  btn.textContent = 'Run Simulation';
+  btn.className = 'btn primary';
+
+  document.querySelector('.insight-bar .tag').className = 'tag tag-neutral';
+  document.querySelector('.insight-bar .tag').textContent = 'Ready';
+  document.getElementById('insightText').textContent = 'Press Run Simulation to begin. Both worlds start identical — only the objective differs.';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  resizeAll();
+  const lc = document.getElementById('leftCanvas');
+  const rc = document.getElementById('rightCanvas');
+  const sc = document.getElementById('substrateChart');
+  renderSim(leftSim, lc, false);
+  renderSim(rightSim, rc, true);
+  renderChart(sc, leftSim, rightSim);
+});
+
+window.addEventListener('resize', () => {
+  resizeAll();
+  const lc = document.getElementById('leftCanvas');
+  const rc = document.getElementById('rightCanvas');
+  const sc = document.getElementById('substrateChart');
+  renderSim(leftSim, lc, false);
+  renderSim(rightSim, rc, true);
+  renderChart(sc, leftSim, rightSim);
+});
+</script>
+</body>
+</html>
