@@ -615,6 +615,10 @@ const NARROW_TAKE = 0.90;   // narrow agents take 90% per cell visit
 const SYSTEM_TAKE = 0.22;   // system agents take 22% — well under regrow threshold
 const NARROW_REPRO = 0.18;  // narrow agents reproduce quickly on energy surplus
 const SYSTEM_REPRO = 0.10;
+// Mixed scenario uses gentler rates so the takeover narrative plays out visibly
+const MIXED_NARROW_TAKE = 0.65;  // still extractive but slower collapse
+const MIXED_NARROW_REPRO = 0.10; // only slightly faster than system agents
+const MIXED_SYSTEM_REPRO = 0.07;
 const ENERGY_DECAY = 0.45;
 const MOVE_COST = 0.08;
 const MAX_HISTORY = 400;
@@ -692,11 +696,15 @@ class Simulation {
       a.y = (a.y + a.vy + GRID) % GRID;
       a.energy -= MOVE_COST;
 
-      // Extract
+      // Extract — mixed mode uses gentler rates for a slower, visible takeover
       const gx = Math.floor(a.x) % GRID;
       const gy = Math.floor(a.y) % GRID;
-      // System agents slow extraction when substrate is low
-      let take = isNarrow ? NARROW_TAKE : SYSTEM_TAKE * Math.max(0.2, S);
+      let take;
+      if (isNarrow) {
+        take = this.mode === 'mixed' ? MIXED_NARROW_TAKE : NARROW_TAKE;
+      } else {
+        take = SYSTEM_TAKE * Math.max(0.2, S);
+      }
       const harvested = this.grid[gx][gy] * take;
       this.grid[gx][gy] = Math.max(0, this.grid[gx][gy] - harvested);
       // System agents are more efficient — they get more energy per unit extracted
@@ -712,7 +720,12 @@ class Simulation {
     // Reproduction — mixed: offspring inherit parent type, narrow slightly higher repro
     const alive = this.agents.filter(a => a.alive);
     for (let a of alive) {
-      const reproRate = a.type === 'narrow' ? NARROW_REPRO : SYSTEM_REPRO;
+      let reproRate;
+      if (this.mode === 'mixed') {
+        reproRate = a.type === 'narrow' ? MIXED_NARROW_REPRO : MIXED_SYSTEM_REPRO;
+      } else {
+        reproRate = a.type === 'narrow' ? NARROW_REPRO : SYSTEM_REPRO;
+      }
       if (a.energy > 8 && Math.random() < reproRate && alive.length < 80) {
         this.agents.push({
           x: a.x + (Math.random()-0.5)*2,
@@ -764,8 +777,8 @@ class Simulation {
       this.collapsed = true;
       this.collapseStep = this.step;
     }
-    // Mixed sim: also collapse if narrow agents have completely taken over and substrate is failing
-    if (this.mode === 'mixed' && subLevel < 0.12 && this.getNarrowPct() > 0.7) {
+    // Mixed sim: collapse when narrow dominates and substrate is clearly failing
+    if (this.mode === 'mixed' && subLevel < 0.08 && this.getNarrowPct() > 0.75) {
       this.collapsed = true;
       this.collapseStep = this.step;
     }
