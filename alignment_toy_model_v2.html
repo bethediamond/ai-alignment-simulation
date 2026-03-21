@@ -702,6 +702,8 @@ class Simulation {
       // System agents are more efficient — they get more energy per unit extracted
       a.energy += harvested * (isNarrow ? 1.4 : 2.8);
       a.wealth += harvested;
+      // System agents have a resilience floor — sustainable systems don't collapse from starvation
+      if (!isNarrow && a.energy < 2) a.energy = 2;
       a.energy -= ENERGY_DECAY;
       if (a.energy <= 0) a.alive = false;
       if (a.energy > 15) a.energy = 15;
@@ -727,6 +729,22 @@ class Simulation {
     }
 
     this.agents = this.agents.filter(a => a.alive);
+
+    // System sim: maintain minimum viable population
+    if (this.mode === 'system' && this.agents.length < 5) {
+      for (let i = this.agents.length; i < 8; i++) {
+        this.agents.push({
+          x: Math.random() * GRID,
+          y: Math.random() * GRID,
+          vx: (Math.random()-0.5)*0.5,
+          vy: (Math.random()-0.5)*0.5,
+          energy: 5,
+          wealth: 0,
+          alive: true,
+          type: 'system',
+        });
+      }
+    }
 
     // Stats
     const totalRes = this.grid.flat().reduce((s,v) => s+v, 0);
