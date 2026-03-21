@@ -610,13 +610,13 @@
 const GRID = 40;
 const N_AGENTS = 20;
 const RESOURCE_MAX = 4;
-const REGROW_RATE = 0.009;
-const NARROW_TAKE = 0.85;
-const SYSTEM_TAKE = 0.35;
-const NARROW_REPRO = 0.15;
-const SYSTEM_REPRO = 0.10;
-const ENERGY_DECAY = 0.5;
-const MOVE_COST = 0.08;
+const REGROW_RATE = 0.06;   // increased: system agents can sustain on this, narrow cannot
+const NARROW_TAKE = 0.90;   // narrow agents take 90% — collapse is fast and clear
+const SYSTEM_TAKE = 0.20;   // system agents take only 20% — well below regrow threshold
+const NARROW_REPRO = 0.12;
+const SYSTEM_REPRO = 0.08;
+const ENERGY_DECAY = 0.4;
+const MOVE_COST = 0.06;
 const MAX_HISTORY = 400;
 
 // ─── SIMULATION CLASS ─────────────────────────────────────────────────────────
@@ -741,7 +741,7 @@ class Simulation {
     if (this.narrowPctHistory.length >= MAX_HISTORY) this.narrowPctHistory.shift();
     this.narrowPctHistory.push(narrowPct);
 
-    if (subLevel < 0.03 || this.agents.length === 0) {
+    if (subLevel < 0.05 || this.agents.length === 0) {
       this.collapsed = true;
       this.collapseStep = this.step;
     }
@@ -773,15 +773,16 @@ function renderSim(sim, canvas, isRight) {
     for (let y = 0; y < GRID; y++) {
       const v = sim.grid[x][y] / RESOURCE_MAX;
       let r, g, b;
-      if (!isRight || currentScenario === 'compare') {
-        // narrow tint: dark brownish-red → green resources
-        r = Math.round(15 + v * 28);
-        g = Math.round(10 + v * 42);
-        b = Math.round(10 + v * 28);
+      if (!isRight) {
+        // left/narrow: dark red-tinted substrate
+        r = Math.round(20 + v * 30);
+        g = Math.round(8 + v * 35);
+        b = Math.round(8 + v * 20);
       } else {
+        // right/system: green-tinted substrate
         r = Math.round(8 + v * 18);
-        g = Math.round(22 + v * 52);
-        b = Math.round(18 + v * 32);
+        g = Math.round(22 + v * 55);
+        b = Math.round(18 + v * 35);
       }
       ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillRect(x * cw, y * ch, cw + 0.5, ch + 0.5);
