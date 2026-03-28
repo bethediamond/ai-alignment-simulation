@@ -1,7 +1,7 @@
 # Toy 01 — Objective Class & Substrate Stability
 
 > *Part of **The Alignment of Intelligence** — a three-article series.*
-> **The article is forthcoming.** This toy is a companion to Article 1: *Constraint*.
+> This toy is a companion to [Article 1: Constraint](https://medium.com/@diamondlight/i-alignment-as-structural-necessity-07e38568754f).
 
 ---
 
